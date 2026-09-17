@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SecureExam - Upload Question Paper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+<h2>SecureExam</h2>
+<div>
+<a href="dashboard.html">Dashboard</a>
+<a href="papers.html">Papers</a>
+<a href="upload.html">Upload</a>
+<a href="#" onclick="logout()">Logout</a>
+</div>
+</nav>
+<div class="form-container">
+<div class="form-box">
+<h1>Upload Question Paper</h1>
+<p>Role: <strong id="userRole">Checking...</strong></p>
+<form id="uploadForm">
+<label>Paper Title</label>
+<input type="text" name="title" required>
+<label>Subject</label>
+<input type="text" name="subject" required>
+<label>Exam Date</label>
+<input type="date" name="exam_date" required>
+<label>Release Time</label>
+<input type="datetime-local" name="release_at">
+<label>Question Paper</label>
+<input type="file" name="paper" accept=".pdf" required>
+<button type="submit">Secure Upload</button>
+</form>
+<p id="message"></p>
+</div>
+</div>
+<script>
+async function checkUser() {
+try {
+const response = await fetch("http://127.0.0.1:5000/api/dashboard",{credentials:"include"});
+const data = await response.json();
+if (!response.ok || !data.success) {
+window.location.href = "login.html";
+return;
+}
+document.getElementById("userRole").innerText = data.role;
+if (data.role !== "QUESTION_SETTER") {
+document.getElementById("uploadForm").style.display = "none";
+document.getElementById("message").innerText = "Only Question Setter can upload question papers.";
+}
+} catch (error) {
+console.error(error);
+document.getElementById("message").innerText = "Unable to connect to backend.";
+}
+}
+document.getElementById("uploadForm").addEventListener("submit",async function(e) {
+e.preventDefault();
+const message = document.getElementById("message");
+const formData = new FormData(this);
+message.innerText = "Uploading and securing paper...";
+try {
+const response = await fetch("http://127.0.0.1:5000/api/upload",{
+method:"POST",
+body:formData,
+credentials:"include"
+});
+const data = await response.json();
+message.innerText = data.message;
+if (data.success) {
+document.getElementById("uploadForm").reset();
+}
+} catch (error) {
+console.error(error);
+message.innerText = "Unable to connect to backend.";
+}
+});
+async function logout() {
+try {
+await fetch("http://127.0.0.1:5000/api/logout",{credentials:"include"});
+window.location.href = "login.html";
+} catch (error) {
+console.error(error);
+window.location.href = "login.html";
+}
+}
+checkUser();
+</script>
+</body>
+</html>

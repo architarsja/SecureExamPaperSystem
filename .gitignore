@@ -1,0 +1,5 @@
+SecureExamBackend/.env
+SecureExamBackend/venv/
+.venv/
+__pycache__/
+*.pyc

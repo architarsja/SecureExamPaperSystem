@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="login-container">
+    <div class="login-box">
+        <h1>SecureExam</h1>
+        <p>Login to continue</p>
+        <form id="loginForm">
+            <label>Email</label>
+            <input type="email" id="email" required>
+            <label>Password</label>
+            <input type="password" id="password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p id="message"></p>
+    </div>
+</div>
+<script>
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const message = document.getElementById("message");
+    message.innerText = "Logging in...";
+    try {
+        const response = await fetch("http://127.0.0.1:5000/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                email: document.getElementById("email").value,
+                password: document.getElementById("password").value
+            })
+        });
+        const data = await response.json();
+        message.innerText = data.message;
+        if (data.success) {
+            window.location.href = "otp.html";
+        }
+    } catch (error) {
+        console.error(error);
+        message.innerText = "Unable to connect to backend.";
+    }
+});
+</script>
+</body>
+</html>

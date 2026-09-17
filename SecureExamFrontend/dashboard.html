@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SecureExam - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav>
+
+    <h2>SecureExam</h2>
+
+    <div id="navigation">
+
+        <a href="dashboard.html">Dashboard</a>
+
+        <a href="papers.html">Papers</a>
+
+        <a href="upload.html" id="uploadLink">
+            Upload
+        </a>
+
+        <a href="review.html" id="reviewLink">
+            Review
+        </a>
+
+        <a href="schedule.html" id="scheduleLink">
+            Schedule
+        </a>
+
+        <a href="admin.html" id="adminLink">
+            Admin
+        </a>
+
+        <a href="#" onclick="logout()">
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+    <h1>Dashboard</h1>
+
+    <div class="card">
+
+        <h2>Welcome, <span id="userName">User</span></h2>
+
+        <p>
+            Role:
+            <strong id="userRole">Loading...</strong>
+        </p>
+
+    </div>
+
+
+    <br>
+
+
+    <div class="dashboard-cards">
+
+        <div class="card">
+
+            <h2 id="total">0</h2>
+
+            <p>Total Papers</p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="pendingReview">0</h2>
+
+            <p>Pending Review</p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="approved">0</h2>
+
+            <p>Approved Papers</p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="rejected">0</h2>
+
+            <p>Rejected Papers</p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="scheduled">0</h2>
+
+            <p>Scheduled Papers</p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="released">0</h2>
+
+            <p>Released Papers</p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+async function loadDashboard() {
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/dashboard",
+            {
+                credentials: "include"
+            }
+        );
+
+        const data = await response.json();
+
+
+        if (!response.ok || !data.success) {
+
+            window.location.href = "login.html";
+
+            return;
+        }
+
+
+        document.getElementById("userName").innerText =
+            data.name || "User";
+
+
+        document.getElementById("userRole").innerText =
+            data.role || "USER";
+
+
+        document.getElementById("total").innerText =
+            data.total || 0;
+
+
+        document.getElementById("pendingReview").innerText =
+            data.pending_review || 0;
+
+
+        document.getElementById("approved").innerText =
+            data.approved || 0;
+
+
+        document.getElementById("rejected").innerText =
+            data.rejected || 0;
+
+
+        document.getElementById("scheduled").innerText =
+            data.scheduled || 0;
+
+
+        document.getElementById("released").innerText =
+            data.released || 0;
+
+
+        setupNavigation(data.role);
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        alert("Unable to connect to backend.");
+
+    }
+
+}
+
+
+function setupNavigation(role) {
+
+    const uploadLink =
+        document.getElementById("uploadLink");
+
+    const reviewLink =
+        document.getElementById("reviewLink");
+
+    const scheduleLink =
+        document.getElementById("scheduleLink");
+
+    const adminLink =
+        document.getElementById("adminLink");
+
+
+    // Hide everything first
+
+    uploadLink.style.display = "none";
+
+    reviewLink.style.display = "none";
+
+    scheduleLink.style.display = "none";
+
+    adminLink.style.display = "none";
+
+
+    // Question Setter
+
+    if (role === "QUESTION_SETTER") {
+
+        uploadLink.style.display = "inline-block";
+
+    }
+
+
+    // Reviewer
+
+    if (role === "REVIEWER") {
+
+        reviewLink.style.display = "inline-block";
+
+    }
+
+
+    // Exam Officer
+
+    if (role === "EXAM_OFFICER") {
+
+        scheduleLink.style.display = "inline-block";
+
+    }
+
+
+    // Admin
+
+    if (role === "ADMIN") {
+
+        adminLink.style.display = "inline-block";
+
+    }
+
+}
+
+
+async function logout() {
+
+    try {
+
+        await fetch(
+            "http://127.0.0.1:5000/api/logout",
+            {
+                credentials: "include"
+            }
+        );
+
+        window.location.href = "login.html";
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        window.location.href = "login.html";
+
+    }
+
+}
+
+
+loadDashboard();
+
+</script>
+
+</body>
+</html>

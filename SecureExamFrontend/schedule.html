@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SecureExam - Schedule Papers</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+    <h2>SecureExam</h2>
+    <div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="papers.html">Papers</a>
+        <a href="schedule.html">Schedule</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </div>
+</nav>
+<div class="form-container">
+    <div class="form-box">
+        <h1>Schedule Question Papers</h1>
+        <p>Exam Officer Panel</p>
+        <p id="userInfo"></p>
+        <div id="papers"></div>
+        <p id="message"></p>
+    </div>
+</div>
+<script>
+const API="http://127.0.0.1:5000";
+async function checkUser(){
+    try{
+        const response=await fetch(API+"/api/dashboard",{credentials:"include"});
+        const data=await response.json();
+        if(!response.ok||!data.success){
+            window.location.href="login.html";
+            return;
+        }
+        if(data.role!=="EXAM_OFFICER"){
+            document.getElementById("userInfo").innerText="Only Exam Officer can access this page.";
+            return;
+        }
+        document.getElementById("userInfo").innerText="Logged in as: "+data.name+" | Role: "+data.role;
+        loadPapers();
+    }catch(error){
+        document.getElementById("message").innerText="Unable to connect to backend.";
+    }
+}
+async function loadPapers(){
+    try{
+        const response=await fetch(API+"/api/papers",{credentials:"include"});
+        const data=await response.json();
+        if(!response.ok||!data.success){
+            document.getElementById("message").innerText=data.message||"Unable to load papers.";
+            return;
+        }
+        const container=document.getElementById("papers");
+        const approved=data.papers.filter(p=>p.review_status==="APPROVED"&&p.status!=="RELEASED");
+        if(approved.length===0){
+            container.innerHTML="<p>No approved papers are waiting for scheduling.</p>";
+            return;
+        }
+        container.innerHTML="";
+        approved.forEach(paper=>{
+            const div=document.createElement("div");
+            div.className="paper-card";
+            div.innerHTML=`
+                <h3>${paper.title}</h3>
+                <p><strong>Subject:</strong> ${paper.subject}</p>
+                <p><strong>Exam Date:</strong> ${paper.exam_date}</p>
+                <p><strong>Paper ID:</strong> ${paper.id}</p>
+                <label>Release Date and Time</label>
+                <input type="datetime-local" id="release-${paper.id}">
+                <button onclick="schedulePaper(${paper.id})">Schedule Paper</button>
+            `;
+            container.appendChild(div);
+        });
+    }catch(error){
+        document.getElementById("message").innerText="Unable to connect to backend.";
+    }
+}
+async function schedulePaper(id){
+    const releaseAt=document.getElementById("release-"+id).value;
+    if(!releaseAt){
+        document.getElementById("message").innerText="Please select release date and time.";
+        return;
+    }
+    try{
+        const response=await fetch(API+"/api/schedule/"+id,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            credentials:"include",
+            body:JSON.stringify({
+                release_at:releaseAt
+            })
+        });
+        const data=await response.json();
+        document.getElementById("message").innerText=data.message;
+        if(data.success){
+            loadPapers();
+        }
+    }catch(error){
+        document.getElementById("message").innerText="Unable to connect to backend.";
+    }
+}
+async function logout(){
+    await fetch(API+"/api/logout",{credentials:"include"});
+    window.location.href="login.html";
+}
+checkUser();
+</script>
+</body>
+</html>

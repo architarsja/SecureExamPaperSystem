@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OTP Verification</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="login-container">
+    <div class="login-box">
+        <h1>OTP Verification</h1>
+        <p>Enter the 6-digit OTP.</p>
+        <form id="otpForm">
+            <input
+                type="text"
+                id="otp"
+                maxlength="6"
+                placeholder="Enter OTP"
+                inputmode="numeric"
+                required
+            >
+            <button type="submit">Verify OTP</button>
+        </form>
+        <p id="message"></p>
+    </div>
+</div>
+<script>
+document.getElementById("otpForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const message = document.getElementById("message");
+    message.innerText = "Verifying OTP...";
+    try {
+        const response = await fetch("http://127.0.0.1:5000/api/verify-otp", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                otp: document.getElementById("otp").value
+            })
+        });
+        const data = await response.json();
+        message.innerText = data.message;
+        if (data.success) {
+            window.location.href = "dashboard.html";
+        }
+    } catch (error) {
+        console.error(error);
+        message.innerText = "Unable to connect to backend.";
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+Flask
+flask-cors
+python-dotenv
+psycopg2-binary
+supabase
+cryptography
+bcrypt
+APScheduler
+gunicorn

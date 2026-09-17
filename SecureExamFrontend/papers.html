@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SecureExam - Question Papers</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+<h2>SecureExam</h2>
+<div>
+<a href="dashboard.html">Dashboard</a>
+<a href="papers.html">Papers</a>
+<a href="upload.html" id="uploadLink" style="display:none;">Upload</a>
+<a href="review.html" id="reviewLink" style="display:none;">Review</a>
+<a href="schedule.html" id="scheduleLink" style="display:none;">Schedule</a>
+<a href="admin.html" id="adminLink" style="display:none;">Admin</a>
+<a href="#" onclick="logout()">Logout</a>
+</div>
+</nav>
+<div class="container">
+<h1>Question Papers</h1>
+<div class="card">
+<p>Logged in as: <strong id="userName">User</strong></p>
+<p>Role: <strong id="userRole">Loading...</strong></p>
+</div>
+<br>
+<div id="papers">
+<div class="card">
+Loading question papers...
+</div>
+</div>
+</div>
+<script>
+async function loadPapers() {
+try {
+const response = await fetch("http://127.0.0.1:5000/api/papers",{credentials:"include"});
+const data = await response.json();
+if (!response.ok || !data.success) {
+window.location.href = "login.html";
+return;
+}
+const container = document.getElementById("papers");
+container.innerHTML = "";
+if (data.papers.length === 0) {
+container.innerHTML = `
+<div class="card">
+<h3>No Question Papers</h3>
+<p>No papers have been uploaded yet.</p>
+</div>
+`;
+return;
+}
+data.papers.forEach(paper => {
+const div = document.createElement("div");
+div.className = "card";
+let reviewText = "";
+if (paper.review_status === "PENDING") {
+reviewText = `<p><strong>Review:</strong> Pending Review</p>`;
+} else if (paper.review_status === "APPROVED") {
+reviewText = `<p><strong>Review:</strong> Approved</p>`;
+} else if (paper.review_status === "REJECTED") {
+reviewText = `
+<p><strong>Review:</strong> Rejected</p>
+<p><strong>Reason:</strong> ${paper.rejection_reason || "No reason provided"}</p>
+`;
+}
+let statusText = "";
+if (paper.status === "SCHEDULED") {
+statusText = `<p><strong>Release Status:</strong> Scheduled</p>`;
+} else if (paper.status === "RELEASED") {
+statusText = `<p><strong>Release Status:</strong> Released</p>`;
+} else if (paper.status === "ARCHIVED") {
+statusText = `<p><strong>Release Status:</strong> Archived</p>`;
+}
+let downloadButton = "";
+if (paper.status === "RELEASED") {
+downloadButton = `
+<br>
+<a class="button" href="http://127.0.0.1:5000/api/download/${paper.id}" target="_blank">Download Paper</a>
+`;
+} else {
+downloadButton = `<p><strong>Paper Locked</strong></p>`;
+}
+div.innerHTML = `
+<h3>${paper.title}</h3>
+<p><strong>Subject:</strong> ${paper.subject}</p>
+<p><strong>Exam Date:</strong> ${paper.exam_date}</p>
+${reviewText}
+${statusText}
+${paper.release_at ? `<p><strong>Release Time:</strong> ${paper.release_at}</p>` : ""}
+${downloadButton}
+`;
+container.appendChild(div);
+});
+setupNavigation(data.papers);
+} catch (error) {
+console.error(error);
+document.getElementById("papers").innerHTML = `
+<div class="card">
+<h3>Connection Error</h3>
+<p>Unable to connect to the backend. Make sure Flask is running.</p>
+</div>
+`;
+}
+}
+function setupNavigation(papers) {
+fetch("http://127.0.0.1:5000/api/dashboard",{credentials:"include"})
+.then(response => response.json())
+.then(data => {
+if (!data.success) {
+window.location.href = "login.html";
+return;
+}
+document.getElementById("userName").innerText = data.name || "User";
+document.getElementById("userRole").innerText = data.role || "USER";
+if (data.role === "QUESTION_SETTER") {
+document.getElementById("uploadLink").style.display = "inline-block";
+}
+if (data.role === "REVIEWER") {
+document.getElementById("reviewLink").style.display = "inline-block";
+}
+if (data.role === "EXAM_OFFICER") {
+document.getElementById("scheduleLink").style.display = "inline-block";
+}
+if (data.role === "ADMIN") {
+document.getElementById("adminLink").style.display = "inline-block";
+}
+})
+.catch(error => {
+console.error(error);
+});
+}
+async function logout() {
+try {
+await fetch("http://127.0.0.1:5000/api/logout",{credentials:"include"});
+window.location.href = "login.html";
+} catch (error) {
+console.error(error);
+window.location.href = "login.html";
+}
+}
+loadPapers();
+</script>
+</body>
+</html>
