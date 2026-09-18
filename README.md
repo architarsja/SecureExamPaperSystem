@@ -57,5 +57,14 @@ SecureExamPaperSystem is a secure cloud-based system developed for managing comp
 | Version Control | GitHub |
 | Development Tool | Visual Studio Code |
 
-## System Workflow
+## Demo Users
+
+| Role            | Email                     | Password       |
+| --------------- | ------------------------- | -------------- |
+| Admin           | `admin@secureexam.com`    | `Admin@123`    |
+| Question Setter | `setter@secureexam.com`   | `Setter@123`   |
+| Reviewer        | `reviewer@secureexam.com` | `Reviewer@123` |
+| Exam Officer    | `officer@secureexam.com`  | `Officer@123`  |
+
+
 
